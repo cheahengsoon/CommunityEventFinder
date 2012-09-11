@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>homePage</title>
+
+    <!-- WinJS references -->
+    <link href="//Microsoft.WinJS.1.0/css/ui-dark.css" rel="stylesheet" />
+    <script src="//Microsoft.WinJS.1.0/js/base.js"></script>
+    <script src="//Microsoft.WinJS.1.0/js/ui.js"></script>
+
+    <link href="/css/default.css" rel="stylesheet" />
+    <link href="/pages/home/home.css" rel="stylesheet" />
+    <script src="/pages/home/home.js"></script>
+    <script type="text/javascript" src="ms-appx:///Bing.Maps.JavaScript/js//veapicore.js"></script>
+    <script type="text/javascript" src="ms-appx:///Bing.Maps.JavaScript/js//veapiModules.js"></script>
+    <!-- Use script tag to register custom module, this should be done before adding the custom module js reference -->
+    <script>Microsoft.Maps.registerModule('clusterModule');</script>
+    <script src="../../js/V7ClientSideClustering.js"></script>
+    <script src="../../js/bingmapscontroller.js"></script>
+    <script src="../../js/bingmapsinfoboxcontroller.js"></script>
+</head>
+    <body role="application">
+        
+        <!-- The content that will be loaded and displayed. -->
+        <div class="fragment homepage">
+            <section aria-label="Main content" role="main">
+                <div id="mapdiv"></div>
+            </section>
+        </div>
+        <div id="appbar" data-win-control="WinJS.UI.AppBar">
+            <button data-win-control="WinJS.UI.AppBarCommand" data-win-options="{id:'changeMapType', label:'Map Type', icon:'&#xE12B;',section:'global',tooltip:'New'}"></button>
+           <!-- <button data-win-control="WinJS.UI.AppBarCommand" data-win-options="{id:'setLocation', label:'Set Location', icon:'&#xE128;',section:'global',tooltip:'Set Location'}"></button>-->
+        </div>
+    </body>
+</html>

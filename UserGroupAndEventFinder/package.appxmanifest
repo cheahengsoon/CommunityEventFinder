@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
+  <Identity Name="e7cce542-246d-4c4e-ac0d-90cc4be393dc" Version="1.0.0.8" Publisher="CN=Chad" />
+  <Properties>
+    <DisplayName>CommunityEventFinder</DisplayName>
+    <PublisherDisplayName>Chad England</PublisherDisplayName>
+    <Logo>Magnifying50.png</Logo>
+  </Properties>
+  <Prerequisites>
+    <OSMinVersion>6.2.1</OSMinVersion>
+    <OSMaxVersionTested>6.2.1</OSMaxVersionTested>
+  </Prerequisites>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" StartPage="default.html">
+      <VisualElements DisplayName="Community Event Finder" Logo="Magnifying150.png" SmallLogo="MagnifyingSmall.png" Description="Community Event Finder aggregates data from http://www.communitymegaphone.com/ and displays it on the map." ForegroundText="dark" BackgroundColor="#FFFFFF" ToastCapable="true">
+        <DefaultTile ShowName="allLogos" ShortName="Community Event Finder" />
+        <SplashScreen Image="images\splashscreen.png" />
+      </VisualElements>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <DeviceCapability Name="location" />
+  </Capabilities>
+</Package>
