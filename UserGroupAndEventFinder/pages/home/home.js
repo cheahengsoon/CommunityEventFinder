@@ -1,5 +1,6 @@
-﻿var map;
-var geolocator;
+﻿/// <reference path="../../js/BingMapsModules/PointBasedClustering.js" />
+/// <reference path="../../js/BingMapsModules/PointBasedClustering.js" />
+var map, greenLayer,infobox, customInfobox, geolocator, pinData, clusterData, yesterday = new Object, today = new Object;
 
 var DataModel = function (name, address, city, state, zip, description, latlong, latitude, longitude, eventurl) {
     this.Name = name;
@@ -9,8 +10,8 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
     this.Zip = zip;
     this.Description = description;
     this.LatLong = latlong;
-    this.Latitude = latitude;
-    this.Longitude = longitude;
+    this.latitude = latitude;
+    this.longitude = longitude;
     this.EventUrl = eventurl;
 };
 
@@ -25,13 +26,11 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
             var activation = Windows.ApplicationModel.Activation;
             WinJS.strictProcessing();
             geolocator = new Windows.Devices.Geolocation.Geolocator();
-            
-            Microsoft.Maps.loadModule('Microsoft.Maps.Map', { callback: checkUserLocation });
-
+            initializeLocation();
+            Microsoft.Maps.loadModule('Microsoft.Maps.Map', { callback: initalizeApplication });
+           
             // Add Event Listeners
-            WinJS.log && WinJS.log("Adding Event Handlers...", "CommunityEventFinder", "status");
             window.addEventListener("resize", mapResize, false);
-            document.querySelector('#changeMapType').addEventListener('click', changeMapType, false);
             geolocator.addEventListener("positionchanged", endUserLoc.onPositionChanged);
             geolocator.addEventListener("statuschanged", endUserLoc.onStatusChanged);
 
@@ -42,7 +41,9 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
                     } else {
                     }
                     args.setPromise(WinJS.UI.processAll().then(function () {
-                        Microsoft.Maps.loadModule('Microsoft.Maps.Map', { callback: checkUserLocation });
+                        initializeLocation();
+                        window.Microsoft.Maps.loadModule('Microsoft.Maps.Map', { callback: initalizeApplication });
+
                     }));
                 }
             };
@@ -56,41 +57,87 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         }
     });
 
-    function checkUserLocation() {
+    function initalizeApplication() {
         endUserLoc.checkInternetConnection();
-        var homeLocation = endUserLoc.GetUserLocationSettings();
+        var homeLocation = initializeLocation();
+
+        initalizeGetDateTime();
         initMap(homeLocation);
+    }
+
+    function initializeLocation() {
+        var messageCheck = "Your location is currently turned off. Change your settings through the Settings charm to turn it back on.";
+        var message = "Your location is currently turned off. Change your settings through the Settings charm for additional enhancements.";
+        var loc = endUserLoc.GetUserLocationSettings();
+        if (loc.status == messageCheck) {
+            notificationController.setToastNotification(message);
+        }
+        return loc;
+    }
+    
+    function initalizeGetDateTime() {
+        try {
+            var newdate = new Date();
+            var dayagodate = new Date(newdate.setDate(newdate.getDate() - 1));
+            today.date = formattersController.longDate(newdate);
+            today.time = formattersController.shortTime(newdate);
+
+            yesterday.date = formattersController.longDate(dayagodate);
+            yesterday.time = formattersController.shortTime(dayagodate);
+        } catch(e) {
+            notificationController.setToastNotification("Error Initialization DateTime");
+        } 
     }
 
     function initMap(latlong) {
         try {
+
+            var  lastSettings = endUserLoc.GetLastSaveLocation();
             var loadLatitude = 26.275929944300522;
             var loadLongitude = -81.73840463161469;
+            var zoomLevel = 4;
 
-            if (latlong.status == "Location is available.") {
-                loadLatitude = latlong.latitude;
-                loadLongitude = latlong.longitude;
+            if (lastSettings.zoom > 0) {
+                if (!isNaN(lastSettings.latitude)) {
+                    loadLatitude = lastSettings.latitude;
+                }
+                if (!isNaN(lastSettings.longitude)) {
+                    loadLongitude = lastSettings.longitude;
+                }
+                zoomLevel = lastSettings.zoom;
             } else {
-                if (latlong.status == "Your location settings is currently turned off. If you would like to turn on this setting please look at the permissions charm.") {
-                    setToastNotification(latlong.status);
+                if (latlong.status == "Location is available.") {
+                    loadLatitude = latlong.latitude;
+                    loadLongitude = latlong.longitude;
                 }
             }
-
             var mapOptions =
             {
                 credentials: "AvOW5Fz4QTsubTTdmaVnseeZnAQ0JYwbx_6zdMdgHk6iF-pnoTE7vojUFJ1kXFTP",
                 mapTypeId: Microsoft.Maps.MapTypeId.birdseye,
                 center: new Microsoft.Maps.Location(loadLatitude, loadLongitude),
-                zoom: 13
+                zoom: zoomLevel
             };
 
             var mapDiv = document.querySelector("#mapdiv");
             map = new Microsoft.Maps.Map(mapDiv, mapOptions);
+
             Microsoft.Maps.Events.addHandler(map, 'viewchangeend', bingViewChanged);
+            
+            greenLayer = new PointBasedClusteredEntityCollection(map, {
+                singlePinCallback: createPin,
+                clusteredPinCallback: createClusteredpin
+            });
+
+            //Add infobox layer that is above the clustered layers.
+            var infoboxLayer = new window.Microsoft.Maps.EntityCollection();
+            infobox = new window.Microsoft.Maps.Infobox(new window.Microsoft.Maps.Location(0, 0), { visible: false, offset: new window.Microsoft.Maps.Point(0, 15) });
+            infoboxLayer.push(infobox);
+            map.entities.push(infoboxLayer);
             mapResize();
         }
         catch (e) {
-            setToastNotification("An error occurred loading, please close and try again");
+            notificationController.setToastNotification("Error Initialization map");
         }
     }
 
@@ -137,26 +184,15 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         mapDivElement1.style.height = windowHeight1 - minusHeight + "px";
     }
 
-    function setToastNotification(message) {
-        var content;
-        var notifications = Windows.UI.Notifications;
-        var notificationManager = notifications.ToastNotificationManager;
-        var toastContent = NotificationsExtensions.ToastContent;
-        content = toastContent.ToastContentFactory.createToastText01();
-        content.textBodyWrap.text = message;
-
-        // Display the XML of the toast.
-        WinJS.log && WinJS.log(content.getContent(), "CommunityFinder", "status");
-
-        // Create a toast, then create a ToastNotifier object to send the toast.
-        var toast = content.createNotification();
-
-        notificationManager.createToastNotifier().show(toast);
-    }
-
-  function bingViewChanged() {
+ function bingViewChanged() {
         var mapCenter = map.getCenter();
         var zoomLevel = map.getZoom();
+       // var pos = map.tryPixelToLocation(new Microsoft.Maps.Point(location.clientX, location.clientY), Microsoft.Maps.PixelReference.control);
+        var settings = Windows.Storage.ApplicationData.current.roamingSettings;
+        settings.values["zoom"] = zoomLevel;
+        settings.values["mapLat"] = mapCenter.latitude;
+        settings.values["mapLong"] = mapCenter.longitude;
+
         var eventsByDistance = bingMapsController.distanceByZoomLevel(zoomLevel);
 
         var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$format=json&$orderby=starttime%20asc";
@@ -170,28 +206,21 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
     function processSuccess(result) {
         var cleansed = result.responseText.replace(/\\'/g, "'");
         var response = JSON.parse(cleansed, dateReviver).d;
-        map.entities.clear();
+       // map.entities.clear();
         var model = convertModel(response);
         if (model != null && model.length > 1) {
             try {
-                var greenLayer = new ClusteredEntityCollection(map,
-                    {
-                        singlePinCallback: createPin,
-                        clusteredPinCallback: createClusteredpin
-                    });
-                greenLayer.SetData(model);
+               greenLayer.SetData(model);
             } catch(e) {
-               setToastNotification("No Pins are available for this area. Try zooming out ");
-                WinJS.log && WinJS.log('Error Setting pushpins', 'pins', 'status');
+                notificationController.setToastNotification("No Pins are available for this area. Try zooming out ");
             } 
         }else {
-            setToastNotification("Pins are may not be available for this area. Try zooming out ");
+            notificationController.setToastNotification("Pins are may not be available for this area. Try zooming out ");
         }
     }
 
     function processError(error) {
-        setToastNotification("Error gathering event data.  Please check your internet connection and try again");
-        WinJS.log && WinJS.log('Error service call', 'service', 'service');
+        notificationController.setToastNotification("Error gathering event data.  Please check your internet connection and try again");
     }
 
     function convertModel(response) {
@@ -215,11 +244,12 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
             data.push(new DataModel(r.title, r.address, r.city, r.state, r.zip, descript, latlong, eventLocation[0], eventLocation[1], r.eventUrl));
         });
 
+        pinData = data;
         return data;
     }
 
-    function createPin(data) {
-        var pin = new Microsoft.Maps.Pushpin(data._LatLong, {
+    function createPin(data, pingInfo) {
+        var pin = new Microsoft.Maps.Pushpin(pingInfo.center, {
             icon: '/images/HomePushPin.png',
             anchor: new Microsoft.Maps.Point(8, 8)
         });
@@ -234,21 +264,113 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         return pin;
     }
 
-    function createClusteredpin(cluster, latlong) {
-        var pin = new Microsoft.Maps.Pushpin(latlong, {
+    //function createClusteredpin(cluster, latlong) {
+    function createClusteredpin(data, clusterInfo) {
+        var pin = new Microsoft.Maps.Pushpin(clusterInfo.center, {
             icon: '/images/clusteredpin.png',
             anchor: new Microsoft.Maps.Point(8, 8)
         });
-        pin.title = 'Multiple Events';
-        pin.description = 'Number of pins : ' + cluster.length + '<br /> Zoom in to view';
-        Microsoft.Maps.Events.addHandler(pin, 'click', displayInfo);
+        pin.title = 'Multiple Events at this location';
+        pin.clusterData = clusterInfo.dataIndices;
+        pin.description = 'Number of Events at this location : ' + clusterInfo.dataIndices.length + '<br /> Zoom in to view';
+        Microsoft.Maps.Events.addHandler(pin, 'click', displayInfocluster);
         return pin;
     }
 
     function displayInfo(e) {
         if (e.targetType == "pushpin") {
-            bingmapsinfoboxcontroller.showInfobox(e.target);
+            showInfobox(e.target, customInfobox);
         }
+    }
+    
+    function displayInfocluster(e) {
+        if (e.targetType == "pushpin") {
+            showInfoboxCluster(e.target, customInfobox);
+        }
+    }
+
+    function showInfoboxCluster(shape) {
+        var returnDescription = "<div style='overflow-y:scroll; max-height:250px;'>";
+        var multiplePinId = shape.clusterData;
+        multiplePinId.forEach(function (r) {
+            var thisData = pinData[r];
+
+            
+            returnDescription += bingmapsinfoboxcontroller.trimdescriptiontext(thisData) + "<hr />";
+            if (thisData.Address != null) {
+                returnDescription += thisData.Address + "<br />";
+            }
+
+            if (thisData.City != null) {
+                returnDescription += thisData.City + " ";
+            }
+
+            if (thisData.State != null) {
+                returnDescription += thisData.State + " ";
+            }
+
+            if (thisData.Zip != null) {
+                returnDescription += thisData.Zip;
+            }
+
+            returnDescription += "<br />";
+
+            returnDescription += "<a href='" + thisData.EventUrl + "'>Event Data</a><hr />";
+        });
+        returnDescription += "</div>";
+        shape.description = returnDescription;
+
+
+        var infoboxOptions = {
+            width: 500,
+            height: 300,
+            showCloseButton: true,
+            offset: new Microsoft.Maps.Point(10, 0),
+            showPointer: true,
+            visible: true,
+            title: shape.title,
+            description: shape.description,
+            
+        };
+        infobox.setLocation(shape.getLocation());
+        infobox.setOptions(infoboxOptions);
+    }
+
+
+    function showInfobox (shape) {
+        var infoboxOptions = {
+            width: 400,
+            height: 300,
+            showCloseButton: true,
+            offset: new Microsoft.Maps.Point(10, 0),
+            showPointer: true,
+            visible: true,
+            title: shape.title,
+            description: shape.description,
+            actions: [{
+                label: 'Event Link', eventHandler: function () {
+                    window.location.href = shape.eventurl;
+
+                }
+            }, {
+                label: 'Zoom to location', eventHandler: function () {
+                    zoomInToPushPin(shape);
+
+                }
+            }]
+        };
+        
+        infobox.setLocation(shape.getLocation());
+        infobox.setOptions(infoboxOptions);
+
+    };
+
+    function zoomInToPushPin(shape)
+    {
+        infobox.setOptions({
+            visible: false
+        });
+        map.setView({ zoom: 15, center:new Microsoft.Maps.Location(shape._location.latitude, shape._location.longitude)});
     }
 
     function dateReviver(key, value) {
@@ -262,7 +384,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         }
         return value;
     };
-
+    
     function changeMapType() {
         var type = map.getMapTypeId();
         switch (type) {

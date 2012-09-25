@@ -55,9 +55,10 @@
     <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
     <TargetPlatformVersion>8.0</TargetPlatformVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>UserGroupAndEventFinder_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>UserGroupAndEventFinder_StoreKey.pfx</PackageCertificateKeyFile>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxPackageDir>D:\Users\Chad\SkyDrive\Win8Packages\CommunityEventFinder\</AppxPackageDir>
+    <PackageCertificateThumbprint>E19F4579E1F1AD7D674EA40562CE376FF1AA14C7</PackageCertificateThumbprint>
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="package.appxmanifest">
@@ -75,13 +76,20 @@
     <Content Include="images\storelogo.png" />
     <Content Include="js\bingmapscontroller.js" />
     <Content Include="js\bingmapsinfoboxcontroller.js" />
+    <Content Include="js\BingMapsModules\PointBasedClustering.js" />
+    <Content Include="js\BingMapsModules\V7ClientSideClustering.js" />
+    <Content Include="js\BingMapsModules\V7CustomInfobox.js" />
+    <Content Include="js\formatersController.js" />
     <Content Include="js\default.js" />
+    <Content Include="js\jquery.js" />
     <Content Include="js\locationController.js" />
     <Content Include="js\navigator.js" />
-    <Content Include="js\V7ClientSideClustering.js" />
+    <Content Include="js\notificationController.js" />
     <Content Include="Magnifying150.png" />
     <Content Include="Magnifying50.png" />
     <Content Include="MagnifyingSmall.png" />
+    <None Include="UserGroupAndEventFinder_StoreKey.pfx" />
+    <None Include="Package.StoreAssociation.xml" />
     <Content Include="pages\footer.html" />
     <Content Include="pages\home\home.css" />
     <Content Include="pages\home\home.html" />

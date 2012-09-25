@@ -19,3 +19,7 @@
     width: 80%;
     height: 70%;
 }
+
+.pushPinfix {
+    z-index: 5000;
+}

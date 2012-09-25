@@ -1,10 +1,4 @@
-﻿// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF 
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A 
-// PARTICULAR PURPOSE. 
-// 
-// Copyright (c) Microsoft Corporation. All rights reserved 
-/*******************************************************************************
+﻿/*******************************************************************************
 * Author: Richard Brundritt
 * Website: http://rbrundritt.wordpress.com
 * Date: February 9th, 2011
@@ -85,8 +79,7 @@ var ClusteredEntityCollection = function (map, options) {
 
     var _options = {
         //The size of the grid cells for clustering in pixels
-        //Default 45
-        gridSize: 30,
+        gridSize: 45,
 
         //The cluster placement type
         clusterPlacementType: ClusterPlacementTypes.MeanAverage,
@@ -95,7 +88,6 @@ var ClusteredEntityCollection = function (map, options) {
         layerOffset: new Microsoft.Maps.Point(0, 0),
 
         //flag that indicates if clustering is enabled or not.
-        //Default true
         clusteringEnabled: true,
 
         //Default functionality to create a single pushpin
@@ -109,6 +101,8 @@ var ClusteredEntityCollection = function (map, options) {
             pin.description = cluster.length + " locations<br/>Zoom in for more details.";
             return pin;
         },
+
+        visible: true,
 
         //Callback function that gets fired after clustering has been completed. 
         callback: null
@@ -157,7 +151,7 @@ var ClusteredEntityCollection = function (map, options) {
         //remove all pins from the layer
         _layer.clear();
 
-        if (_data != null) {
+        if (_data != null && _options.visible) {
             //Calculate the size of the map in pixels
             //This should always be done so that the map can be resizable
             var mapWidth = _map.getWidth();
@@ -261,9 +255,9 @@ var ClusteredEntityCollection = function (map, options) {
     }
 
     //Updates the default options with new options
-    function setOptions(options) {
-        for (attrname in options) {
-            _options[attrname] = options[attrname];
+    function setOptions(option) {
+        for (attrname in option) {
+            _options[attrname] = option[attrname];
         }
 
         cluster();
@@ -280,6 +274,10 @@ var ClusteredEntityCollection = function (map, options) {
         return _layer;
     };
 
+    this.getVisible = function () {
+        return _options.visible;
+    };
+
     /**
     * @returns The clustering options.
     */
@@ -291,8 +289,12 @@ var ClusteredEntityCollection = function (map, options) {
     * Sets the clustering options.
     * Example: clusterLayer.SetOptions({ gridSize : 30});
     */
-    this.SetOptions = function (options) {
-        setOptions(options);
+    this.setOptions = function (option) {
+        setOptions(option);
+    };
+
+    this.SetOptions = function (option) {
+        setOptions(option);
     };
 
     /**
@@ -331,7 +333,7 @@ var ClusteredEntityCollection = function (map, options) {
 
             var i = _data.length - 1;
 
-            if (i > 0) {
+            if (i >= 0) {
                 do {
                     //convert the data coordinate into a Location object and store it.
                     _data[i]._LatLong = new Microsoft.Maps.Location(_data[i].Latitude, _data[i].Longitude);
@@ -429,4 +431,3 @@ var ClusteredEntityCollection = function (map, options) {
     //Initialize class
     _init();
 };
-Microsoft.Maps.moduleLoaded('clusterModule');

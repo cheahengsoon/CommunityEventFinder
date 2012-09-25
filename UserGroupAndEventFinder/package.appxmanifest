@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
-  <Identity Name="e7cce542-246d-4c4e-ac0d-90cc4be393dc" Version="1.0.0.8" Publisher="CN=Chad" />
+  <Identity Name="65103NaquadriaSolutions.CommunityEventFinder" Version="1.0.0.10" Publisher="CN=E7A7AEC2-4D30-45F6-BC6D-58BB05A9DB5D" />
   <Properties>
-    <DisplayName>CommunityEventFinder</DisplayName>
-    <PublisherDisplayName>Chad England</PublisherDisplayName>
+    <DisplayName>Community Event Finder</DisplayName>
+    <PublisherDisplayName>Naquadria Solutions</PublisherDisplayName>
     <Logo>Magnifying50.png</Logo>
   </Properties>
   <Prerequisites>

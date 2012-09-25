@@ -1,8 +1,9 @@
 ﻿var bingmapsinfoboxcontroller = {};
+var customInfobox;
 
 bingmapsinfoboxcontroller.trimDescription = function(data) {
 
-    var returnDescription = "<div style='overflow:auto; max-height:400px;'>";
+    var returnDescription = "<div style='overflow-y:scroll; max-height:250px;'>";
     returnDescription += bingmapsinfoboxcontroller.trimdescriptiontext(data) + "<hr />";
     if (data.Address != null) {
         returnDescription += data.Address + "<br />";
@@ -29,8 +30,8 @@ bingmapsinfoboxcontroller.trimdescriptiontext = function(data) {
     var modeifiedDescription = data.Description;
     var originalDescriptionLength = modeifiedDescription.length;
     var endSlice;
-    if (originalDescriptionLength > 200) {
-        endSlice = 200;
+    if (originalDescriptionLength > 500) {
+        endSlice = 500;
     } else {
         endSlice = originalDescriptionLength;
     }
@@ -50,37 +51,64 @@ bingmapsinfoboxcontroller.trimdescriptiontext = function(data) {
 
     modeifiedDescription = modeifiedDescription.replace(",", "").slice(0, endSlice);
 
-    if (originalDescriptionLength > 200) {
+    if (originalDescriptionLength > 500) {
         modeifiedDescription += "...";
     }
 
     return modeifiedDescription;
 };
 
-bingmapsinfoboxcontroller.showInfobox = function(shape) {
-    for (var i = map.entities.getLength() - 1; i >= 0; i--) {
-        var pushpin = map.entities.get(i);
-        if (pushpin.toString() == '[Infobox]') {
-            map.entities.removeAt(i);
-        };
+bingMapsController.renderInfobox = function(latlong, title, description) {
+    customInfobox = new CustomInfobox(map, { orientation: 1, color: '#ccc', arrowWidth: 20 });
+    if (customInfobox != null) {
+        //Define the layout contents in the infobox
+        var html = ["<div style='padding:10px'>"];
+
+        //Add title
+        html.push("<b>", title, "</b><br/>");
+
+        //Add discription
+        html.push(description, "<br/>");
+
+        //Add a custom button to zoom to location
+        html.push("<a href='javascript:void(0);' onclick='map.setView({zoom : 17, center:new Microsoft.Maps.Location(")
+        html.push(latlong.latitude, ",", latlong.longitude, ")});'>Zoom to Location</a>");
+
+        html.push("</div>");
+
+        //Render Infobox
+        customInfobox.show(latlong, html.join(''));
     }
-    var infoboxOptions = {
-        width: 300,
-        height: 260,
-        showCloseButton: true,
-        zIndex: 4000,
-        offset: new Microsoft.Maps.Point(10, 0),
-        showPointer: true,
-        title: shape.title,
-        description: shape.description,
-        actions: [{
-            label: 'Event Link', eventHandler: function () {
-                window.location.href = shape.eventurl;
-
-            }
-        }]
-    };
-
-      var defInfobox = new Microsoft.Maps.Infobox(shape.getLocation(), infoboxOptions);
-    map.entities.push(defInfobox);
 };
+
+//bingmapsinfoboxcontroller.showInfobox = function (shape, inCustomInfobox) {
+//    for (var i = map.entities.getLength() - 1; i >= 0; i--) {
+//        var pushpin = map.entities.get(i);
+//        if (pushpin.toString() == '[Infobox]') {
+//            map.entities.removeAt(i);
+//        };
+//    }
+//    var infoboxOptions = {
+//        width: 400,
+//        height: 260,
+//        showCloseButton: true,
+//        zIndex: 10000,
+//        offset: new Microsoft.Maps.Point(10, 0),
+//        showPointer: true,
+//        title: shape.title,
+//        description: shape.description,
+//        actions: [{
+//            label: 'Event Link', eventHandler: function () {
+//                window.location.href = shape.eventurl;
+
+//            }
+//        },{
+//            label: 'Event Link', eventHandler: function () {
+//                window.location.href = shape.eventurl;
+
+//            }
+//        }]
+//    };
+//      var defInfobox = new Microsoft.Maps.Infobox(shape.getLocation(), infoboxOptions);
+//      map.entities.push(defInfobox);
+//};

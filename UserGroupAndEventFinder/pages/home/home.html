@@ -14,11 +14,16 @@
     <script src="/pages/home/home.js"></script>
     <script type="text/javascript" src="ms-appx:///Bing.Maps.JavaScript/js//veapicore.js"></script>
     <script type="text/javascript" src="ms-appx:///Bing.Maps.JavaScript/js//veapiModules.js"></script>
-    <!-- Use script tag to register custom module, this should be done before adding the custom module js reference -->
-    <script>Microsoft.Maps.registerModule('clusterModule');</script>
-    <script src="../../js/V7ClientSideClustering.js"></script>
+    
+    <!--<script src="../../js/BingMapsModules/V7ClientSideClustering.js"></script>
+        <script src="../../js/BingMapsModules/V7CustomInfobox.js"></script>-->
+    <script src="../../js/BingMapsModules/PointBasedClustering.js"></script>
     <script src="../../js/bingmapscontroller.js"></script>
     <script src="../../js/bingmapsinfoboxcontroller.js"></script>
+    
+    <!-- Use script tag to register custom module, this should be done before adding the custom module js reference -->
+    <!--<script>Microsoft.Maps.registerModule('ClientSideClusteringModule');</script>-->
+    <!--<script>Microsoft.Maps.registerModule("PointBasedClusteringModule", "../../js/BingMapsModules/PointBasedClustering.js");</script>-->
 </head>
     <body role="application">
         
@@ -28,9 +33,9 @@
                 <div id="mapdiv"></div>
             </section>
         </div>
-        <div id="appbar" data-win-control="WinJS.UI.AppBar">
+        <!--<div id="appbar" data-win-control="WinJS.UI.AppBar">
             <button data-win-control="WinJS.UI.AppBarCommand" data-win-options="{id:'changeMapType', label:'Map Type', icon:'&#xE12B;',section:'global',tooltip:'New'}"></button>
            <!-- <button data-win-control="WinJS.UI.AppBarCommand" data-win-options="{id:'setLocation', label:'Set Location', icon:'&#xE128;',section:'global',tooltip:'Set Location'}"></button>-->
-        </div>
+       <!-- </div>-->
     </body>
 </html>

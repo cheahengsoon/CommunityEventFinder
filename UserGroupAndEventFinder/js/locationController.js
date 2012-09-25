@@ -1,7 +1,7 @@
 ﻿var endUserLoc = {};
 endUserLoc.CurrentApplicationData = Windows.Storage.ApplicationData.current;
 
-endUserLoc.checkInternetConnection = function() {
+endUserLoc.checkInternetConnection = function () {
     var addressCheck = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='26.275929944300522'&Lon='-81.73840463161469'&Dist=250&$format=json&$orderby=starttime%20asc&$top=25";
     
     WinJS.xhr({
@@ -15,7 +15,7 @@ endUserLoc.processSuccess = function () {
 };
 
 endUserLoc.processError = function(error) {
-    var errorMessage = new Windows.UI.Popups.MessageDialog("Failed to connect to the internet.  Please check your internet connection.");
+    notificationController.setToastNotification("Could not connect to the internet.  Please check your internet connection and try again");
     WinJS.log && WinJS.log('Error service call', 'internetCheck', 'service');
 };
 
@@ -29,14 +29,14 @@ endUserLoc.onStatusChanged = function (args) {
     //}
 };
 
-endUserLoc.onPositionChanged = function(args) {
-    // var pos = args.position;
-    var pos = args.position.coordinate;
-    var settings = Windows.Storage.ApplicationData.current.roamingSettings;
-    settings.values["latitude"] = pos.latitude;
-    settings.values["longitude"] = pos.longitude;
-    settings.values["accuracy"] = pos.accuracy;
-    //settings.values["GeoStatus"] = endUserLoc.getStatusString(endUserLoc.getStatusString);
+endUserLoc.onPositionChanged = function (args) {
+    if (args != null) {
+        var pos = args.position.coordinate;
+        var settings = Windows.Storage.ApplicationData.current.roamingSettings;
+        settings.values["latitude"] = pos.latitude;
+        settings.values["longitude"] = pos.longitude;
+        settings.values["accuracy"] = pos.accuracy;
+    }
 };
 
 endUserLoc.GetLocation = function () {
@@ -102,17 +102,27 @@ endUserLoc.GetUserLocationSettings = function() {
     var settings = Windows.Storage.ApplicationData.current.roamingSettings;
     var latlong = { };
     latlong.status = settings.values["GeoStatus"];
-    latlong.latitude = settings.values["Latitude"];
-    latlong.longitude = settings.values["Longitude"];
+    latlong.latitude = settings.values["latitude"];
+    latlong.longitude = settings.values["longitude"];
     latlong.accuracy = settings.values["accuracy"];
 
     return latlong;
 };
 
+endUserLoc.GetLastSaveLocation = function() {
+    var settings = Windows.Storage.ApplicationData.current.roamingSettings;
+    var lastSettings = {};
+    lastSettings.zoom = settings.values["zoom"];
+    lastSettings.latitude = settings.values["mapLat"];
+    lastSettings.longitude = settings.values["mapLong"];
+
+    return lastSettings;
+};
+
 endUserLoc.ResetUserLocationSettings = function () {
     var roamingSettings = Windows.Storage.ApplicationData.current.roamingSettings;
     roamingSettings.values.remove("GeoStatus");
-    roamingSettings.values.remove("Latitude");
-    roamingSettings.values.remove("Longitude");
+    roamingSettings.values.remove("latitude");
+    roamingSettings.values.remove("longitude");
     roamingSettings.values.remove("accuracy");
 }
