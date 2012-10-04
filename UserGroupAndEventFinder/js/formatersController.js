@@ -5,6 +5,23 @@ formattersController.shortDate = function(dateTime) {
     return dt.format(dateTime);
 };
 
+formattersController.shortDateMegaPhone = function (dateTime) {
+    var dt = new Windows.Globalization.DateTimeFormatting.DateTimeFormatter("shortdate");
+    var dateValue = dt.format(dateTime).split("/");
+    var checkDay = dateValue[1];
+    if(checkDay.length == 3) {
+        checkDay = "0" + dateValue[1];
+    }
+    
+    var checkMonth = dateValue[0];
+    if (checkMonth.length == 3) {
+        checkMonth = "0" + dateValue[0];
+    }
+
+    return dateValue[2] + "-" + checkMonth + "-" + checkDay;
+};
+
+
 formattersController.longDate = function (dateTime) {
     var dt = new Windows.Globalization.DateTimeFormatting.DateTimeFormatter("longdate");
     return dt.format(dateTime);

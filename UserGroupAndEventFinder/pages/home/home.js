@@ -78,11 +78,12 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
     function initalizeGetDateTime() {
         try {
             var newdate = new Date();
-            var dayagodate = new Date(newdate.setDate(newdate.getDate() - 1));
-            today.date = formattersController.longDate(newdate);
-            today.time = formattersController.shortTime(newdate);
 
-            yesterday.date = formattersController.longDate(dayagodate);
+            var dayagodate = new Date(newdate.setDate(newdate.getDate() - 1));
+            today.date = formattersController.shortDate(newdate);
+            today.time = formattersController.shortTime(newdate);
+            today.mega = formattersController.shortDateMegaPhone(newdate);
+            yesterday.date = formattersController.shortDate(dayagodate);
             yesterday.time = formattersController.shortTime(dayagodate);
         } catch(e) {
             notificationController.setToastNotification("Error Initialization DateTime");
@@ -195,7 +196,10 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
 
         var eventsByDistance = bingMapsController.distanceByZoomLevel(zoomLevel);
 
-        var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$format=json&$orderby=starttime%20asc";
+        var filters = "(starttime%20gt%20datetime'" + today.mega + "')";
+        filters = filters.replace('â€Ž', '');
+     var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=" + filters + "&$orderby=starttime%20asc&$format=json";
+      //  var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime gt datetime'2010-10-03')&$orderby=starttime%20asc&$format=json";
 
         WinJS.xhr({
             type: "GET",
