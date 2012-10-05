@@ -1,5 +1,7 @@
 ﻿/// <reference path="../../js/BingMapsModules/PointBasedClustering.js" />
-/// <reference path="../../js/BingMapsModules/PointBasedClustering.js" />
+/// <reference path="../../js/BingMapsModules/InfoBoxFormatter.js" />
+/// <reference path="../../js/BingMapsModules/MapFunctions.js" />
+
 var map, greenLayer,infobox, customInfobox, geolocator, pinData, clusterData, yesterday = new Object, today = new Object;
 
 var DataModel = function (name, address, city, state, zip, description, latlong, latitude, longitude, eventurl) {
@@ -194,7 +196,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         settings.values["mapLat"] = mapCenter.latitude;
         settings.values["mapLong"] = mapCenter.longitude;
 
-        var eventsByDistance = bingMapsController.distanceByZoomLevel(zoomLevel);
+        var eventsByDistance = MapFunctions.distanceByZoomLevel(zoomLevel);
 
         var filters = "(starttime%20gt%20datetime'" + today.mega + "')";
         filters = filters.replace('â€Ž', '');
@@ -258,7 +260,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
             anchor: new Microsoft.Maps.Point(8, 8)
         });
 
-        var trimedDescription = bingmapsinfoboxcontroller.trimDescription(data);
+        var trimedDescription = InfoBoxFormatter.trimDescription(data);
 
         pin.title = data.Name;
         pin.description = trimedDescription;
@@ -300,7 +302,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
             var thisData = pinData[r];
 
             
-            returnDescription += bingmapsinfoboxcontroller.trimdescriptiontext(thisData) + "<hr />";
+            returnDescription += InfoBoxFormatter.trimdescriptiontext(thisData) + "<hr />";
             if (thisData.Address != null) {
                 returnDescription += thisData.Address + "<br />";
             }

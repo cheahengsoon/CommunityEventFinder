@@ -74,8 +74,8 @@
     <Content Include="images\splashscreen.png" />
     <Content Include="images\star.png" />
     <Content Include="images\storelogo.png" />
-    <Content Include="js\bingmapscontroller.js" />
-    <Content Include="js\bingmapsinfoboxcontroller.js" />
+    <Content Include="js\BingMapsModules\InfoBoxFormatter.js" />
+    <Content Include="js\BingMapsModules\MapFunctions.js" />
     <Content Include="js\BingMapsModules\PointBasedClustering.js" />
     <Content Include="js\BingMapsModules\V7ClientSideClustering.js" />
     <Content Include="js\BingMapsModules\V7CustomInfobox.js" />
