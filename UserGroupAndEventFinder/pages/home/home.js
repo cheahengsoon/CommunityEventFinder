@@ -81,10 +81,23 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         try {
             var newdate = new Date();
 
-            var dayagodate = new Date(newdate.setDate(newdate.getDate() - 1));
+            var dayagodate = new Date(newdate.setDate(newdate.getDay() - 1));
+            var year = dayagodate.getFullYear();
+            var month = dayagodate.getMonth() + 1; // getmonth is zero based
+            var day = dayagodate.getDay();
+            
+            if (day < 10) {
+                day = "0" + day;
+            }
+
+            if (month < 10) {
+                month = "0" + month;
+            }
+
+            yesterday.mega = year + "-" + month + "-" + day;
+
             today.date = formattersController.shortDate(newdate);
             today.time = formattersController.shortTime(newdate);
-            today.mega = formattersController.shortDateMegaPhone(newdate);
             yesterday.date = formattersController.shortDate(dayagodate);
             yesterday.time = formattersController.shortTime(dayagodate);
         } catch(e) {
@@ -186,7 +199,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         mapDivElement1.style.width = windowWidth1 - minusWidth + "px";
         mapDivElement1.style.height = windowHeight1 - minusHeight + "px";
     }
-
+    
  function bingViewChanged() {
         var mapCenter = map.getCenter();
         var zoomLevel = map.getZoom();
@@ -198,10 +211,8 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
 
         var eventsByDistance = MapFunctions.distanceByZoomLevel(zoomLevel);
 
-        var filters = "(starttime%20gt%20datetime'" + today.mega + "')";
-        filters = filters.replace('â€Ž', '');
-     var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=" + filters + "&$orderby=starttime%20asc&$format=json";
-      //  var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime gt datetime'2010-10-03')&$orderby=starttime%20asc&$format=json";
+        var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime%20gt%20datetime'" + yesterday.mega + "')&$orderby=starttime%20asc&$format=json";
+     //   var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime gt datetime'2010-10-03')&$orderby=starttime%20asc&$format=json";
 
         WinJS.xhr({
             type: "GET",
