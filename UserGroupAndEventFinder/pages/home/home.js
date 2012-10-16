@@ -1,10 +1,18 @@
-﻿/// <reference path="../../js/BingMapsModules/PointBasedClustering.js" />
+﻿/// <reference path="/Bing.Maps.JavaScript/js/veapicore.js" />
+/// <reference path="/Bing.Maps.JavaScript/js/veapiModules.js" />
+/// <reference path="//Microsoft.WinJS.1.0/js/ui.js" />
+/// <reference path="//Microsoft.WinJS.1.0/js/base.js" />
+/// <reference path="../../js/BingMapsModules/PointBasedClustering.js" />
 /// <reference path="../../js/BingMapsModules/InfoBoxFormatter.js" />
 /// <reference path="../../js/BingMapsModules/MapFunctions.js" />
+/// <reference path="../../js/formatersController.js" />
+/// <reference path="../../js/notificationController.js" />
+/// <reference path="../../js/locationController.js" />
 
-var map, greenLayer,infobox, customInfobox, geolocator, pinData, clusterData, yesterday = new Object, today = new Object;
+var map, greenLayer, infobox, customInfobox, geolocator, pinData, clusterData, yesterday = new Object, today = new Object;
 
-var DataModel = function (name, address, city, state, zip, description, latlong, latitude, longitude, eventurl) {
+var DataModel = function (name, address, city, state, zip, description, latlong, latitude, longitude, eventurl, starttime, endtime) {
+    "use strict";
     this.Name = name;
     this.Address = address;
     this.City = city;
@@ -15,11 +23,34 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
     this.latitude = latitude;
     this.longitude = longitude;
     this.EventUrl = eventurl;
+    this.StartDate = convertDate(0, starttime);
+    this.EndDate = endtime;
+};
+
+function convertDate(key, value) {
+    try {
+        var testDate = value.replace(/[\\/]/g, "");
+        return eval("new " + testDate);
+    } catch(e) {
+        return "";
+    } 
+
+}
+
+function dateReviver(key, value) {
+    var a;
+    if (typeof value === 'string') {
+        a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)(Z|([+\-])(\d{2}):(\d{2}))$/.exec(value);
+        if (a) {
+            return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                            +a[5], +a[6]));
+        }
+    }
+    return value;
 };
 
 (function () {
     "use strict";
-    
     WinJS.UI.Pages.define("/pages/home/home.html", {
         // This function is called whenever a user navigates to this page. It
         // populates the page elements with the app's data.
@@ -80,11 +111,27 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
     function initalizeGetDateTime() {
         try {
             var newdate = new Date();
+            var dayagodate = new Date();
 
-            var dayagodate = new Date(newdate.setDate(newdate.getDate() - 1));
+
+            dayagodate.setDate(newdate.getDate() - 1);
+            var day = dayagodate.getDate();
+            var year = dayagodate.getFullYear();
+            var month = dayagodate.getMonth() + 1; // getmonth is zero based
+           
+            
+            if (day < 10) {
+                day = "0" + day;
+            }
+
+            if (month < 10) {
+                month = "0" + month;
+            }
+
+            yesterday.mega = year + "-" + month + "-" + day;
+
             today.date = formattersController.shortDate(newdate);
             today.time = formattersController.shortTime(newdate);
-            today.mega = formattersController.shortDateMegaPhone(newdate);
             yesterday.date = formattersController.shortDate(dayagodate);
             yesterday.time = formattersController.shortTime(dayagodate);
         } catch(e) {
@@ -134,7 +181,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
 
             //Add infobox layer that is above the clustered layers.
             var infoboxLayer = new window.Microsoft.Maps.EntityCollection();
-            infobox = new window.Microsoft.Maps.Infobox(new window.Microsoft.Maps.Location(0, 0), { visible: false, offset: new window.Microsoft.Maps.Point(0, 15) });
+            infobox = new window.Microsoft.Maps.Infobox(new window.Microsoft.Maps.Location(0, 0), { visible: false, offset: new window.Microsoft.Maps.Point(0, 15)});
             infoboxLayer.push(infobox);
             map.entities.push(infoboxLayer);
             mapResize();
@@ -186,7 +233,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         mapDivElement1.style.width = windowWidth1 - minusWidth + "px";
         mapDivElement1.style.height = windowHeight1 - minusHeight + "px";
     }
-
+    
  function bingViewChanged() {
         var mapCenter = map.getCenter();
         var zoomLevel = map.getZoom();
@@ -198,10 +245,8 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
 
         var eventsByDistance = MapFunctions.distanceByZoomLevel(zoomLevel);
 
-        var filters = "(starttime%20gt%20datetime'" + today.mega + "')";
-        filters = filters.replace('â€Ž', '');
-     var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=" + filters + "&$orderby=starttime%20asc&$format=json";
-      //  var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime gt datetime'2010-10-03')&$orderby=starttime%20asc&$format=json";
+        var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime%20gt%20datetime'" + yesterday.mega + "')&$orderby=starttime%20desc&$format=json";
+     //   var urlAddress = "http://www.communitymegaphone.com/ws/CMEventDS.svc/GetEventsByDistance?Lat='" + mapCenter.latitude + "'&Lon='" + mapCenter.longitude + "'&Dist=" + eventsByDistance + "&$filter=(starttime gt datetime'2010-10-03')&$orderby=starttime%20asc&$format=json";
 
         WinJS.xhr({
             type: "GET",
@@ -247,7 +292,7 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
                 descript = "**Online Event** " + r.description;
             }
 
-            data.push(new DataModel(r.title, r.address, r.city, r.state, r.zip, descript, latlong, eventLocation[0], eventLocation[1], r.eventUrl));
+            data.push(new DataModel(r.title, r.address, r.city, r.state, r.zip, descript, latlong, eventLocation[0], eventLocation[1], r.eventUrl, r.starttime, r.endtime));
         });
 
         pinData = data;
@@ -270,7 +315,6 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         return pin;
     }
 
-    //function createClusteredpin(cluster, latlong) {
     function createClusteredpin(data, clusterInfo) {
         var pin = new Microsoft.Maps.Pushpin(clusterInfo.center, {
             icon: '/images/clusteredpin.png',
@@ -300,9 +344,8 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         var multiplePinId = shape.clusterData;
         multiplePinId.forEach(function (r) {
             var thisData = pinData[r];
-
-            
-            returnDescription += InfoBoxFormatter.trimdescriptiontext(thisData) + "<hr />";
+            returnDescription += "<b>" + thisData.StartDate + "</b> -- ";
+            returnDescription += InfoBoxFormatter.trimdescriptiontext(thisData) + "<hr  />";
             if (thisData.Address != null) {
                 returnDescription += thisData.Address + "<br />";
             }
@@ -321,32 +364,40 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
 
             returnDescription += "<br />";
 
-            returnDescription += "<a href='" + thisData.EventUrl + "'>Event Data</a><hr />";
+            returnDescription += "<a href='" + thisData.EventUrl + "'>Event Data</a><hr style=\"border: 1px dashed #000;\" />";
         });
         returnDescription += "</div>";
-        shape.description = returnDescription;
-
-
+        //shape.description = returnDescription;
+        
         var infoboxOptions = {
             width: 500,
-            height: 300,
+            height: 400,
             showCloseButton: true,
             offset: new Microsoft.Maps.Point(10, 0),
             showPointer: true,
             visible: true,
             title: shape.title,
-            description: shape.description,
+            description: returnDescription,
+            actions: [{
+                label: 'Zoom to location', eventHandler: function () {
+                    zoomInToPushPin(shape);
+
+                }
+            }]
             
         };
+        
         infobox.setLocation(shape.getLocation());
+        
         infobox.setOptions(infoboxOptions);
     }
 
 
-    function showInfobox (shape) {
+    function showInfobox(shape) {
+
         var infoboxOptions = {
             width: 400,
-            height: 300,
+            height: InfoBoxFormatter.getHeightValue(shape.description),
             showCloseButton: true,
             offset: new Microsoft.Maps.Point(10, 0),
             showPointer: true,
@@ -378,18 +429,6 @@ var DataModel = function (name, address, city, state, zip, description, latlong,
         });
         map.setView({ zoom: 15, center:new Microsoft.Maps.Location(shape._location.latitude, shape._location.longitude)});
     }
-
-    function dateReviver(key, value) {
-        var a;
-        if (typeof value === 'string') {
-            a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)(Z|([+\-])(\d{2}):(\d{2}))$/.exec(value);
-            if (a) {
-                return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
-                                +a[5], +a[6]));
-            }
-        }
-        return value;
-    };
     
     function changeMapType() {
         var type = map.getMapTypeId();
