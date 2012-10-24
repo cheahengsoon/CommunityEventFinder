@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
-  <Identity Name="65103NaquadriaSolutions.CommunityEventFinder" Version="1.0.0.10" Publisher="CN=E7A7AEC2-4D30-45F6-BC6D-58BB05A9DB5D" />
+  <Identity Name="65103NaquadriaSolutions.CommunityEventFinder" Version="1.1.0.11" Publisher="CN=E7A7AEC2-4D30-45F6-BC6D-58BB05A9DB5D" />
   <Properties>
     <DisplayName>Community Event Finder</DisplayName>
     <PublisherDisplayName>Naquadria Solutions</PublisherDisplayName>
